@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Haven</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+<!-- NAVBAR -->
+<nav class="nav">
+    <div class="logoContainer">
+        <img src="images/Logo.jpg" class="logo">
+        <h1>Coffee Haven</h1>
+    </div>
+
+    <div>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('checkout')">Checkout</button>
+    </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="homePage">
+
+<div class="hero" style="background-image:url('images/BackG.jpg')">
+    <div class="heroTitle">
+        <img src="images/Logo.jpg" class="heroLogo">
+        <h2>COFFEE HAVEN SHOP</h2>
+    </div>
+    <p>Premium handcrafted drinks</p>
+</div>
+
+<div class="grid">
+
+<div class="box">
+<h2>Available Drinks</h2>
+
+<input type="text" id="search" placeholder="Search drinks..." class="searchBar" onkeyup="renderProducts()">
+
+<div class="drinkSplit">
+
+<!-- COLD -->
+<div class="drinkBox">
+<h3>❄️ Cold Coffee</h3>
+<div id="coldProducts"></div>
+</div>
+
+<!-- HOT -->
+<div class="drinkBox">
+<h3>🔥 Hot Coffee</h3>
+<div id="hotProducts"></div>
+</div>
+
+</div>
+</div>
+
+<div class="box">
+<h2>Coming Soon</h2>
+
+<div class="comingCard">
+<img src="images/strawberryshake.jpg" class="comingImg">
+<h3>Strawberry Shake</h3>
+<p>Coming Soon</p>
+</div>
+
+<div class="comingCard">
+<img src="images/mango.jpg" class="comingImg">
+<h3>Mango Smoothie</h3>
+<p>Coming Soon</p>
+</div>
+
+<div class="comingCard">
+<img src="images/espresso.jpg" class="comingImg">
+<h3>Espresso</h3>
+<p>Coming Soon</p>
+</div>
+
+<div class="comingCard">
+<img src="images/boba.jpg" class="comingImg">
+<h3>Boba Supreme</h3>
+<p>Coming Soon</p>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- CHECKOUT PAGE -->
+<div id="checkoutPage" style="display:none">
+
+<div class="box">
+<h2>Checkout</h2>
+
+<div class="checkoutPanel">
+
+<div class="checkoutGroup">
+<label>Customer Name</label>
+<input type="text" id="customerName" class="searchBar">
+</div>
+
+<div id="cartItems"></div>
+
+<div class="totalBox">
+<span>Total</span>
+<span id="totalPrice">₱0</span>
+</div>
+
+<div class="checkoutGroup">
+<label>Payment Method</label>
+<select id="paymentMethod" class="searchBar" onchange="toggleCash()">
+<option>Cash</option>
+<option>GCash</option>
+<option>Card</option>
+</select>
+</div>
+
+<div id="cashSection">
+
+<div class="checkoutGroup">
+<label>Cash Amount</label>
+<input type="number" id="cash" class="searchBar" onkeyup="updateChange()">
+</div>
+
+<div class="changeBox">
+Change: <span id="change">₱0</span>
+</div>
+
+</div>
+
+<button class="checkoutBtn" onclick="checkout()">Verify & Checkout</button>
+
+</div>
+
+<div class="receiptContainer">
+<h2>Sales History</h2>
+<div id="receipts"></div>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+let products = [
+{id:1,name:"Iced Coffee",price:89,image:"images/icedcoffee.jpg",type:"cold"},
+{id:2,name:"Black Americano",price:120,image:"images/blackamericano.jpg",type:"hot"},
+{id:3,name:"Dalgona Coffee",price:90,image:"images/dalgonacoffee.jpg",type:"cold"},
+{id:4,name:"Matcha Latte",price:95,image:"images/matchalatte.jpg",type:"cold"},
+{id:5,name:"Hot Chocolate",price:160,image:"images/hotchocolate.jpg",type:"hot"},
+{id:6,name:"Caramel Macchiato",price:125,image:"images/caramelmacchiato.jpg",type:"hot"},
+{id:7,name:"Cappuccino",price:89,image:"images/coffee.jpg",type:"hot"},
+{id:8,name:"Iced Choco Mocha",price:110,image:"images/icedchocoMocha.jpg",type:"cold"}
+];
+
+let cart = [];
+let receipts = [];
+
+function showPage(page){
+document.getElementById("homePage").style.display = page=="home" ? "block":"none";
+document.getElementById("checkoutPage").style.display = page=="checkout" ? "block":"none";
+renderCart();
+}
+
+function renderProducts(){
+let search = document.getElementById("search").value.toLowerCase();
+
+let cold = "";
+let hot = "";
+
+products.forEach(p=>{
+if(!p.name.toLowerCase().includes(search)) return;
+
+let card = `
+<div class="productCard">
+<img src="${p.image}" class="drinkImg">
+<h3>${p.name}</h3>
+<p>₱${p.price}</p>
+<button onclick="addToCart(${p.id})">Add to Cart</button>
+</div>`;
+
+if(p.type=="cold") cold += card;
+else hot += card;
+});
+
+document.getElementById("coldProducts").innerHTML = cold;
+document.getElementById("hotProducts").innerHTML = hot;
+}
+
+function addToCart(id){
+let item = cart.find(x=>x.id==id);
+
+if(item){
+item.qty++;
+}else{
+let product = products.find(x=>x.id==id);
+cart.push({...product,qty:1});
+}
+
+renderCart();
+}
+
+function renderCart(){
+let html = "";
+let total = 0;
+
+cart.forEach(item=>{
+total += item.price * item.qty;
+
+html += `
+<div class="cartItem">
+<span>${item.name}</span>
+<input type="number" value="${item.qty}" min="1"
+onchange="updateQty(${item.id},this.value)">
+<span>₱${item.price * item.qty}</span>
+<button onclick="removeItem(${item.id})">X</button>
+</div>`;
+});
+
+document.getElementById("cartItems").innerHTML = html;
+document.getElementById("totalPrice").innerHTML = "₱"+total;
+
+updateChange();
+}
+
+function updateQty(id,val){
+let item = cart.find(x=>x.id==id);
+item.qty = parseInt(val);
+renderCart();
+}
+
+function removeItem(id){
+cart = cart.filter(x=>x.id!=id);
+renderCart();
+}
+
+function toggleCash(){
+let method = document.getElementById("paymentMethod").value;
+document.getElementById("cashSection").style.display =
+method=="Cash" ? "block":"none";
+}
+
+function updateChange(){
+let total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
+let cash = Number(document.getElementById("cash").value || 0);
+let change = cash-total;
+
+document.getElementById("change").innerHTML = "₱"+(change>0?change:0);
+}
+
+function checkout(){
+
+if(cart.length==0){
+alert("Cart is empty");
+return;
+}
+
+let total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
+let method = document.getElementById("paymentMethod").value;
+let cash = Number(document.getElementById("cash").value || 0);
+
+if(method=="Cash" && cash<total){
+alert("Insufficient payment");
+return;
+}
+
+let receipt = {
+ref:"ORD-"+Date.now(),
+customer:document.getElementById("customerName").value || "Walk-in Customer",
+total:total,
+paid:method=="Cash"?cash:total,
+change:method=="Cash"?(cash-total):0,
+method:method
+};
+
+receipts.push(receipt);
+
+document.getElementById("receipts").innerHTML += `
+<div class="receipt">
+<h3>${receipt.ref}</h3>
+<p>Customer: ${receipt.customer}</p>
+<p>Total: ₱${receipt.total}</p>
+<p>Paid: ₱${receipt.paid}</p>
+<p>Method: ${receipt.method}</p>
+<p>Change: ₱${receipt.change}</p>
+</div>`;
+
+cart = [];
+renderCart();
+alert("Payment Successful!");
+}
+
+renderProducts();
+
+</script>
+
+</body>
+</html>
